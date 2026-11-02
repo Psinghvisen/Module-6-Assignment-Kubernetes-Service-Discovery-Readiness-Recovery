@@ -1,0 +1,36 @@
+$ kubectl apply -f k8s/inventory.yaml
+deployment.apps/inventory created
+service/inventory-service created
+$ kubectl apply -f k8s/client.yaml
+deployment.apps/client created
+
+$ kubectl get pods -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP          NODE
+client-968b797c5-8qmjv       1/1     Running   0          20s   10.1.0.12   docker-desktop
+inventory-9d5f88b48-g2wwd    1/1     Running   0          20s   10.1.0.10   docker-desktop
+inventory-9d5f88b48-kv8vk    1/1     Running   0          20s   10.1.0.11   docker-desktop
+
+$ kubectl get svc inventory-service
+NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+inventory-service   ClusterIP   10.101.183.246   <none>        80/TCP    2m29s
+
+$ kubectl get endpoints inventory-service
+NAME                ENDPOINTS                         AGE
+inventory-service   10.1.0.10:8080,10.1.0.11:8080     4m53s
+
+$ kubectl logs deploy/client --tail=15
+16:57:33 req#275 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:34 req#276 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:35 req#277 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:36 req#278 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:37 req#279 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:38 req#280 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:39 req#281 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:40 req#282 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:41 req#283 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:42 req#284 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:43 req#285 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:44 req#286 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:45 req#287 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+16:57:46 req#288 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+16:57:47 req#289 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)

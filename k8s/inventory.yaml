@@ -1,0 +1,49 @@
+# Inventory Deployment (2 replicas) + Service that exposes them under one stable name.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: inventory
+  template:
+    metadata:
+      labels:
+        app: inventory          # the Service selects Pods by this label
+    spec:
+      containers:
+        - name: inventory
+          image: inventory-app:1.0
+          imagePullPolicy: IfNotPresent   # use the locally built image
+          ports:
+            - containerPort: 8080
+          env:
+            - name: POD_NAME
+              valueFrom: { fieldRef: { fieldPath: metadata.name } }
+            - name: POD_IP
+              valueFrom: { fieldRef: { fieldPath: status.podIP } }
+          # Readiness: "should this Pod get traffic?" Failing removes it from the Service
+          # endpoints, but the container keeps running (it is NOT restarted).
+          readinessProbe:
+            httpGet: { path: /ready, port: 8080 }
+            periodSeconds: 2
+            failureThreshold: 1
+            successThreshold: 1
+          # Liveness: "is the process alive?" Always passes here, so a readiness failure
+          # never triggers a restart.
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8080 }
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory-service       # the stable name the client uses
+spec:
+  selector:
+    app: inventory
+  ports:
+    - port: 80                  # client calls http://inventory-service (port 80)
+      targetPort: 8080          # forwarded to the container's port 8080

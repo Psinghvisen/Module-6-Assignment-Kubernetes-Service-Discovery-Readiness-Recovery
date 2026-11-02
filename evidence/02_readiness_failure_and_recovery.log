@@ -1,0 +1,49 @@
+### Make kv8vk fail readiness
+$ kubectl exec inventory-9d5f88b48-kv8vk -- touch /tmp/not-ready
+
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+client-968b797c5-8qmjv       1/1     Running   0          9m11s
+inventory-9d5f88b48-g2wwd    1/1     Running   0          9m11s
+inventory-9d5f88b48-kv8vk    0/1     Running   0          9m11s
+
+$ kubectl get endpoints inventory-service
+NAME                ENDPOINTS        AGE
+inventory-service   10.1.0.10:8080   9m11s
+
+$ kubectl logs deploy/client --tail=10
+17:01:56 req#536 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:01:57 req#537 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:01:58 req#538 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:01:59 req#539 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:00 req#540 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:01 req#541 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:02 req#542 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:03 req#543 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:04 req#544 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:02:05 req#545 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+
+### Restore readiness
+$ kubectl exec inventory-9d5f88b48-kv8vk -- rm /tmp/not-ready
+
+$ kubectl get pods
+NAME                         READY   STATUS    RESTARTS   AGE
+client-968b797c5-8qmjv       1/1     Running   0          11m
+inventory-9d5f88b48-g2wwd    1/1     Running   0          11m
+inventory-9d5f88b48-kv8vk    1/1     Running   0          11m
+
+$ kubectl get endpoints inventory-service
+NAME                ENDPOINTS                         AGE
+inventory-service   10.1.0.10:8080,10.1.0.11:8080     11m
+
+$ kubectl logs deploy/client --tail=10
+17:04:43 req#702 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:04:44 req#703 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:45 req#704 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:46 req#705 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:47 req#706 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:48 req#707 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:04:49 req#708 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:04:50 req#709 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:51 req#710 200 served-by=inventory-9d5f88b48-kv8vk (10.1.0.11)
+17:04:52 req#711 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)

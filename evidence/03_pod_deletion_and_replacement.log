@@ -1,0 +1,41 @@
+### Before
+$ kubectl get pods -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP
+client-968b797c5-8qmjv       1/1     Running   0          12m   10.1.0.12
+inventory-9d5f88b48-g2wwd    1/1     Running   0          12m   10.1.0.10
+inventory-9d5f88b48-kv8vk    1/1     Running   0          12m   10.1.0.11
+
+$ kubectl delete pod inventory-9d5f88b48-kv8vk
+pod "inventory-9d5f88b48-kv8vk" deleted
+
+### After
+$ kubectl get pods -o wide
+NAME                         READY   STATUS    RESTARTS   AGE   IP
+client-968b797c5-8qmjv       1/1     Running   0          13m   10.1.0.12
+inventory-9d5f88b48-84xzs    1/1     Running   0          49s   10.1.0.13
+inventory-9d5f88b48-g2wwd    1/1     Running   0          13m   10.1.0.10
+
+$ kubectl get svc inventory-service
+NAME                TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE
+inventory-service   ClusterIP   10.101.183.246   <none>        80/TCP    13m
+
+$ kubectl get endpoints inventory-service
+NAME                ENDPOINTS                         AGE
+inventory-service   10.1.0.10:8080,10.1.0.13:8080     13m
+
+$ kubectl logs deploy/client --tail=15
+17:06:02 req#781 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:03 req#782 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:04 req#783 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:05 req#784 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:06 req#785 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:07 req#786 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:08 req#787 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:09 req#788 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:10 req#789 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:11 req#790 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:12 req#791 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:13 req#792 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:14 req#793 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)
+17:06:15 req#794 200 served-by=inventory-9d5f88b48-84xzs (10.1.0.13)
+17:06:16 req#795 200 served-by=inventory-9d5f88b48-g2wwd (10.1.0.10)

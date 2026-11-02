@@ -1,0 +1,25 @@
+# One client Pod that calls the Inventory Service by its Service name once per second.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: client
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: client
+  template:
+    metadata:
+      labels:
+        app: client
+    spec:
+      containers:
+        - name: client
+          image: inventory-app:1.0
+          imagePullPolicy: IfNotPresent
+          command: ["python", "client.py"]
+          env:
+            - name: INVENTORY_URL
+              value: "http://inventory-service/inventory"   # Service name, never a Pod IP
+            - name: INTERVAL
+              value: "1"
